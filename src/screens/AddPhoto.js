@@ -1,4 +1,6 @@
 import React, { Component } from 'react';
+import { connect } from 'react-redux'
+import { addPost } from '../store/actions/posts'
 import {
     View,
     Text,
@@ -14,7 +16,9 @@ import * as ImagePicker from 'expo-image-picker';
  
 import Icon from 'react-native-vector-icons/FontAwesome'
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view'
- 
+
+const noUser = 'Você precisa estar logado para adicionar imagens'
+
 class AddPhoto extends Component {
     state = {
         image: null,
@@ -22,42 +26,65 @@ class AddPhoto extends Component {
     };
  
     pickLocalImage = async () => {
+        if(!this.props.name) {
+            Alert.alert('Falha', noUser)
+            return
+        }
+
         let res = await ImagePicker.launchImageLibraryAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.All,
             allowsEditing: true,
             aspect: [4, 3],
             quality: 1
         });
- 
-        console.log(res);
- 
+    
         if (!res.cancelled) {
             this.setState({ image: res.uri });
         }
     }
  
     pickCameraImage = async () => {
+        if(!this.props.name) {
+            Alert.alert('Falha', noUser)
+            return
+        }
+
         let res = await ImagePicker.launchCameraAsync({
             mediaTypes: ImagePicker.MediaTypeOptions.All,
             allowsEditing: true,
             aspect: [4, 3],
             quality: 1
         });
- 
-        console.log(res);
- 
+
         if (!res.cancelled) {
             this.setState({ image: res.uri, base64: res.data });
         }
     }
  
     save = async () => {
-        Alert.alert('Imagem salva!', this.state.comment)
+        if(!this.props.name) {
+            Alert.alert('Falha', noUser)
+            return
+        }
+        this.props.onAddPost({ 
+            id: Math.random(),
+            nickname:this.props.name,
+            email: this.props.email,
+            image: this.state.image,
+            comments: [{
+                nickname: this.props.name,
+                comment: this.state.comment
+            }]
+        })
+
+        this.setState({ image: null, comment: ''  })
+        //Alert.alert('Imagem salva!', this.state.comment)
+        this.props.navigation.navigate('Feed')
+        
     }
  
     render() {
-        console.disableYellowBox = true
- 
+
         return (
             <KeyboardAwareScrollView
                 enableOnAndroid={true}
@@ -73,6 +100,7 @@ class AddPhoto extends Component {
                             placeholder='Algum comentário para a foto?'
                             style={styles.input}
                             value={this.state.comment}
+                            editable={!!this.props.name}
                             onChangeText={comment => this.setState({ comment })}
                         />
                         <View style={styles.choicesContainer}>
@@ -158,5 +186,19 @@ const styles = StyleSheet.create({
         width: '90%',
     }
 })
- 
-export default AddPhoto
+
+
+const mapStateToProps = ({ user }) => {
+    return {
+        email: user.email,
+        name: user.name
+    }
+}
+
+mapDispatchToProps = dispatch => {
+    return {
+        onAddPost: post => dispatch(addPost(post))
+    }
+}
+
+export default connect(mapStateToProps, mapDispatchToProps)(AddPhoto)
