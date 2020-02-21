@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
         color: '#000',
         height: 30,
         fontSize: 28,
-        fontFamily: null
+        fontFamily: 'shelter'
     },
     userContainer: {
         flexDirection: 'row',

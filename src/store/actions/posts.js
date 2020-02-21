@@ -3,7 +3,12 @@ import axios from 'axios'
 
 export const addPost = post => {
     return dispatch => {
-        axios.post('/posts.json', { ...post }).then(res => console.log(res.data))
+        axios.post('/posts.json', { ...post }).then(res => {
+            console.log(res.data)
+            dispatch({ type: ADD_POST, payload: post })
+        })
+        
+            
         
         
     }
